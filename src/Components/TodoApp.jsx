@@ -1,12 +1,16 @@
-import React, { createContext, useEffect, useState } from 'react'
 import AddTodo from './AddTodo'
-import TodoList from './TodoList'
-import { themes } from '../theme';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import ArchiveIcon from '@mui/icons-material/Archive';
+import FolderOffIcon from '@mui/icons-material/FolderOff';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import Tooltip from '@mui/material/Tooltip';
+import TodoList from './TodoList'
+import React, { createContext, useEffect, useState } from 'react'
+import { ToastContainer, toast } from 'react-toastify';
+import { themes } from '../theme';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const TodoContext = createContext({});
 
@@ -45,7 +49,18 @@ const TodoApp = () => {
     {
         setActiveTab(tab)
 
-        console.log(todoData, pages);
+        if(tab === 'active')
+        {
+            setFilter((prev)=>({...prev, filterByStatus:'pending'}))
+        }
+        else if(tab === 'completed')
+        {
+            setFilter((prev)=>({...prev, filterByStatus:'completed'}))
+        }
+        else
+        {
+            setFilter((prev)=>({...prev, filterByStatus:''}))
+        }
     }
 
     const handleClearCompleted = (e) =>
@@ -53,14 +68,31 @@ const TodoApp = () => {
         e.stopPropagation()
         let copyTodoData = todoData.filter(todo=>todo.pending);
         let archiveData = todoData.filter(todo=>!todo.pending);
+        
         setTodoData(copyTodoData);
         setArchive((prev)=>[...prev, ...archiveData]);
+
+        if(archiveData.length){
+            toast.info("Completed todos are archived!")
+        }
     }
 
     const handleFilteration = (e) =>
     {
         setFilter(prev=>({...prev, [e.target.name]: e.target.value}));
     }   
+
+    const handleSelectAll = (e) =>
+    {
+        let copyData = [...todoData]
+        copyData.map(todo=>{
+            
+                todo.pending = !e.target.checked
+        })
+
+            setTodoData(copyData)
+
+    }
 
     useEffect(()=>
     {
@@ -89,39 +121,73 @@ const TodoApp = () => {
                 <h1 className={`text-5xl font-medium my-[55px] ${theme.context.color}`}>📓 Todo List</h1>
 
                 <div className={`w-[47%] p-8 min-h-[420px] relative rounded ${theme.context.shadow} ${theme.context.backgroundInner}`}>
-                    <AddTodo/>
+                {
+                    showArchive ?
+
+                    <AddTodo/> :
+
+                    <p className='h-[30px]'></p>
+                }
+
+                {
+                    todoData.length!=0 && showArchive &&
+                    <div>
+                        <input type='checkbox' onChange={handleSelectAll}/>
+                        <span className='text-sm px-2 text-gray-500'>Select All</span>
+                    </div>
+                    
+                }
+
                     <TodoList/>
 
                     <div className={`flex justify-between items-center text-[13.5px] font-light ${theme.context.color}`}>
 
-                        <p> {showArchive ? todoData.filter((todo)=>todo.pending).length : archive.length} item(s) left</p>
+                        <p> {showArchive ? todoData.filter((todo)=>todo.pending).length + ' item(s) left': archive.length + ' item(s)'} </p>
 
                         {
-                            showArchive && 
-                            <>
-                                <div className='w-[60%] flex justify-center my-4'>
-                                {
-                                    ['all','active','completed'].map((item, index)=>(
-                                        <button key={item+index} className={`p-2 px-3 mx-2 rounded-lg ${item === activeTab ? 'border border-1' : '' }`} onClick={()=>toggleActive(item)}>{item}</button>
-                                    ))
-                                }
+                            showArchive 
+                            ?
+                                todoData.length 
+                                ?
+                                <>
+                                    <div className='w-[60%] flex justify-center my-4'>
+                                    {
+                                        ['all','active','completed'].map((item, index)=>(
+                                            <button key={item+index} className={`p-2 px-3 mx-2 rounded-lg ${item === activeTab ? 'border border-1' : '' }`} onClick={()=>toggleActive(item)}>{item}</button>
+                                        ))
+                                    }
+                                    </div>
+
+                                    {
+                                        activeTab !== 'active' ? 
+                                        <p className='cursor-pointer' onClick={handleClearCompleted}>Clear Completed</p> : <p className='w-[100px]'></p>
+                                    }
+                                </>
+                                :  <div className='h-[100%] flex flex-col justify-center items-center absolute top-[30px] right-[43%]'>
+                                    <FolderOffIcon style={{fontSize:'4.5rem', color:'rgba(0,0,0,.22)'}}/>
+                                    <p style={{color:'rgba(0,0,0,.22)', fontSize:'1rem'}}>Add a Todo </p>
                                 </div>
 
-                                {
-                                    activeTab !== 'active' ? 
-                                    <p className='cursor-pointer' onClick={handleClearCompleted}>Clear Completed</p> : <p className='w-[100px]'></p>
-                                }
-                            </>
+                            : archive.length==0 &&
+
+                                <div className='h-[100%] flex flex-col justify-center items-center absolute top-[0] right-[42%]'>
+                                    <FolderOffIcon style={{fontSize:'4.5rem', color:'rgba(0,0,0,.22)'}}/>
+                                    <p style={{color:'rgba(0,0,0,.22)', fontSize:'1.2rem'}}>No Archive</p>
+                                </div>
                         }
                     </div>
 
                     {
                         filter.isFilterOn ?
 
-                        <FilterAltOffIcon className='absolute right-[20px] top-[20px] cursor-pointer' onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
+                            <Tooltip title="Filter Off" arrow>
+                                <FilterAltOffIcon className={`absolute right-[20px] top-[20px] cursor-pointer text-gray-500`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
+                            </Tooltip>
                         
                         :
-                        <FilterAltIcon className='absolute right-[20px] top-[20px] cursor-pointer' onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
+                        <Tooltip title="Filter On" arrow>
+                            <FilterAltIcon className={`absolute right-[20px] top-[20px] cursor-pointer text-gray-500`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
+                        </Tooltip>
                     }
                     
                     {
@@ -133,18 +199,24 @@ const TodoApp = () => {
                                     <p>Title - </p>
                                     <input className='border w-[79%] px-2' name='filterByTitle' onChange={handleFilteration} value={filter.filterByTitle} />
                                 </div>
-                                <div className='mb-[5px] flex gap-[10px]'>
-                                    <p className='mb-[5px]'>Status - </p>
-                                    <select className='w-[70%]' name='filterByStatus' onChange={handleFilteration} value={filter.filterByStatus}>
-                                        <option value={'all'}>all</option>
-                                        <option value={'pending'}>pending</option>
-                                        <option value={'completed'}>completed</option>
-                                    </select>
-                                </div>
+
+                                {
+                                    showArchive &&
+
+                                    <div className='mb-[5px] flex gap-[10px]'>
+                                        <p className='mb-[5px]'>Status - </p>
+                                        <select className='w-[70%]' name='filterByStatus' onChange={handleFilteration} value={filter.filterByStatus}>
+                                            <option value={''}>all</option>
+                                            <option value={'pending'}>pending</option>
+                                            <option value={'completed'}>completed</option>
+                                        </select>
+                                    </div>
+                                }
+
                                 <div className='mb-[5px] flex gap-[10px]'>
                                     <p className='mb-[5px]'>Priority - </p>
                                     <select className='w-[70%]' name='filterByPriority' onChange={handleFilteration} value={filter.filterByPriority}>
-                                        <option value={'all'}>all</option>
+                                        <option value={''}>all</option>
                                         <option value={'low'}>low</option>
                                         <option value={'medium'}>medium</option>
                                         <option value={'high'}>high</option>
@@ -152,29 +224,47 @@ const TodoApp = () => {
                                 </div>
                             </div>
                         </div>
-
                     }
 
                     {
                         showArchive ?
 
-                        <ArchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer' onClick={()=>setShowArchive(false)}/>
+                        <Tooltip title="Show Archive" arrow>
+                            <ArchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer text-gray-500' onClick={()=>setShowArchive(false)}/>
+                        </Tooltip>
                         
                         :
-
-                        <UnarchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer' onClick={()=>setShowArchive(true)}/>
+                        <Tooltip title="Hide Archive" arrow>
+                            <UnarchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer text-gray-500' onClick={()=>setShowArchive(true)}/>
+                        </Tooltip>
 
                     }
 
-
-
                 </div>
 
-                <DarkModeIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={switchTheme} />
+                <Tooltip title={`${theme.name === 'light' ? 'Dark' : 'Light' } mode`} arrow>
+                    <DarkModeIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={switchTheme} />
+                </Tooltip>
 
-
+                
 
             </div>    
+
+            {/* logger */}
+
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar
+                newestOnTop={false}
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
+
             </ThemeContext.Provider>
         </TodoContext.Provider>
 

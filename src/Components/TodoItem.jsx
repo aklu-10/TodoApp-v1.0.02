@@ -4,6 +4,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { ThemeContext } from './TodoApp';
+import { toast } from 'react-toastify';
 
 const TodoItem = ({todo, isArchive}) => {
 
@@ -16,32 +17,34 @@ const TodoItem = ({todo, isArchive}) => {
     });
 
     let priorityColor = {
-        'low':'text-green-500',
-        'medium':'text-yellow',
-        'high':'text-red',
+        'low':['text-green-500', 'bg-green-500'],
+        'medium':['text-yellow-500', 'bg-yellow-500'],
+        'high':['text-red-500', 'bg-red-500'],
     }
 
-    const {todoData, setTodoData, archive, setArchive} = useContext(TodoContext);
+    const {todoData, setTodoData, archive, setArchive, setPages} = useContext(TodoContext);
 
     const {theme} = useContext(ThemeContext);
 
     const handleDeleteTodo = (id) =>
     {
         
-        if(isArchive)
+        if(confirm("Are you sure to delete?"))
         {
-            let copyData = [...archive];
-            copyData = copyData.filter(todo=>todo.id!==id)
-            setArchive(copyData);
+            if(isArchive)
+            {
+                let copyData = [...archive];
+                copyData = copyData.filter(todo=>todo.id!==id)
+                setArchive(copyData);
+                setPages(Math.ceil(archive.length/6));
+            }
+            else
+            {
+                let copyTodoData = [...todoData];
+                copyTodoData = copyTodoData.filter(todo=>todo.id!==id)
+                setTodoData(copyTodoData)
+            }
         }
-        else
-        {
-            let copyTodoData = [...todoData];
-            copyTodoData = copyTodoData.filter(todo=>todo.id!==id)
-            setTodoData(copyTodoData)
-        }
-
-
     }
 
     const displayCross = () =>
@@ -49,8 +52,10 @@ const TodoItem = ({todo, isArchive}) => {
         setToggler((prev)=>({...prev, cross: !toggler.cross}))
     }
 
-    const toggleCheckBtn = (id) =>
+    const toggleCheckBtn = (e, id) =>
     {
+        e.preventDefault();
+
         setToggler((prev)=>({...prev, checkbox: !toggler.checkbox, cross:false }))
 
         let copyTodoData = [...todoData];
@@ -65,8 +70,14 @@ const TodoItem = ({todo, isArchive}) => {
         archiveData = archiveData.filter(todo=>todo.id!=id);
 
         if(isArchive){
-            setTodoData([...copyTodoData, {...removedTodoFromArchive[0], pending:true}])
-            setArchive(archiveData);
+
+            if(confirm("Are you sure to unarchived this todo?"))
+            {
+                setTodoData([...copyTodoData, {...removedTodoFromArchive[0], pending:true}])
+                setArchive(archiveData);
+                toast.info("Todo unarchived.")
+            }
+
         }
         else{
             setTodoData([...copyTodoData])
@@ -88,20 +99,20 @@ const TodoItem = ({todo, isArchive}) => {
                 {todo.pending ? (
                     <RadioButtonUncheckedIcon
                     style={{ color: "lightgray", fontSize: "1.2rem", cursor: "pointer" }}
-                    onClick={() => toggleCheckBtn(todo.id)}
+                    onClick={(e) => toggleCheckBtn(e, todo.id)}
                     />
                 ) : (
                     <CheckCircleOutlineIcon
                     style={{ color: "green", fontSize: "1.2rem", cursor: "pointer" }}
-                    onClick={() => toggleCheckBtn(todo.id)}
+                    onClick={(e) => toggleCheckBtn(e, todo.id)}
                     />
                 )}
                 <div className="flex justify-between p-4 w-[100%]">
                     <div className='flex justify-between w-[90%]'>
                         <p
-                        className={`w-[100%] outline-0 ${
-                            !todo.pending ? "line-through text-slate-400" : ''
-                        } ${priorityColor[todo.priority]} `}
+                        className={`w-[100%] break-all outline-0 ${
+                            !todo.pending ? "line-through text-slate-400" : priorityColor[todo.priority][0]
+                        }`}
                         contentEditable={toggler.edit}
                         onDoubleClick={togglerEdit}
                         onBlur={togglerEdit}
@@ -109,7 +120,10 @@ const TodoItem = ({todo, isArchive}) => {
                         {todo.todoName}
                         </p>
 
-                        <button className={`border w-[100px] text-[12px] rounded-xl ${todo.pending ? 'bg-red-400 text-white border border-2 border-red-500' : 'bg-green-300 text-slate-600 border-green-500 border border-2' }`}>{todo.pending ? 'Pending' : 'Completed'}</button>
+                        <button className={`border w-[110px] text-[12px] rounded-xl mx-2 text-white self-start ${priorityColor[todo.priority][1]}`}> {todo.priority}</button>
+
+                        <button className={`border w-[110px] text-[12px] rounded-xl self-start ${todo.pending ? 'bg-red-400 text-white ' : 'bg-green-500 text-white' }`}>{todo.pending ? 'Pending' : 'Completed'}</button>
+
                     </div>
                     {toggler.cross && ((!todo.pending && isArchive) || todo.pending) && (
                     <ClearIcon

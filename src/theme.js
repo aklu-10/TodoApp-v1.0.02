@@ -13,7 +13,6 @@ export let themes =
         backgroundOuter: 'bg-[#18181b]',
         backgroundInner : 'bg-[#262629]',
         color:'text-white',
-        shadow:'shadow-[0_0_6px_1px_black]'
-
+        shadow:'shadow-[0_0_6px_1px_black]',
     }
 }

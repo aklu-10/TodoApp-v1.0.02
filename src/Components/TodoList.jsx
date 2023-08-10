@@ -104,7 +104,6 @@ const TodoList = () => {
 
             <div className='min-h-[350px]'>
                 {
-
                     !showArchive ? 
 
                     //archive
@@ -112,13 +111,13 @@ const TodoList = () => {
                         slicedRecord?.map(todo=>(
                             <TodoItem isArchive={true} todo={todo} key={("todo"+todo.id)} />
                         ))
-                        : archive.length!=0 && <p>No Results</p>
+                        : archive.length!=0 && <div className='h-[400px] flex justify-center items-center'><p className='text-gray-400'>No Results</p></div>
                     :
                         slicedRecord.length ? 
                         slicedRecord?.map(todo=>(
                             <TodoItem todo={todo} key={("todo"+todo.id)} />
                         ))
-                        : todoData.length!=0 && <p>No Results</p>
+                        : todoData.length!=0 && <div className='h-[400px] flex justify-center items-center'><p className='text-gray-400'>No Results</p></div>
 
                 }
             </div> 

@@ -1,8 +1,9 @@
-import React, { useContext, useState } from 'react'
-import { TodoContext } from './TodoApp';
 import ClearIcon from '@mui/icons-material/Clear';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import Tooltip from '@mui/material/Tooltip';
+import React, { useContext, useState } from 'react'
+import { TodoContext } from './TodoApp';
 import { ThemeContext } from './TodoApp';
 import { toast } from 'react-toastify';
 
@@ -22,17 +23,17 @@ const TodoItem = ({todo, isArchive}) => {
         'high':['text-red-500', 'bg-red-500'],
     }
 
-    const {todoData, setTodoData, archive, setArchive, setPages} = useContext(TodoContext);
+    const {todoData, setTodoData, archive, setArchive, setPages, setTrashCan, showTrash, trashCan} = useContext(TodoContext);
 
-    const {theme} = useContext(ThemeContext);
-
-    const handleDeleteTodo = (id) =>
+    const handleDeleteTodo = (id, isTrash) =>
     {
-        
         if(confirm("Are you sure to delete?"))
         {
+            let goingToDeletedTodo;
+            
             if(isArchive)
             {
+                goingToDeletedTodo = archive.find(todo=>todo.id===id);
                 let copyData = [...archive];
                 copyData = copyData.filter(todo=>todo.id!==id)
                 setArchive(copyData);
@@ -40,10 +41,23 @@ const TodoItem = ({todo, isArchive}) => {
             }
             else
             {
+                goingToDeletedTodo = todoData.find(todo=>todo.id===id);
                 let copyTodoData = [...todoData];
                 copyTodoData = copyTodoData.filter(todo=>todo.id!==id)
                 setTodoData(copyTodoData)
             }
+
+            if(isTrash!=true)
+            {
+                setTrashCan((prev)=>([...prev, goingToDeletedTodo]));
+            }
+            else
+            {
+                let copyTrash = [...trashCan];
+                copyTrash = copyTrash.filter(todo=>todo.id!=id);
+                setTrashCan(copyTrash);
+            }
+
         }
     }
 
@@ -90,27 +104,37 @@ const TodoItem = ({todo, isArchive}) => {
         setToggler((prev)=>({...prev, edit: !toggler.edit}))
     }
 
+
     return (
             <div
-            className="flex items-center border border-t-0 border-l-0 border-r-0 border-b-1"
+            className={`flex items-center border border-t-0 border-l-0 border-r-0 border-b-1 border-[gray]`}
             onMouseEnter={displayCross}
             onMouseLeave={displayCross}
             >
-                {todo.pending ? (
-                    <RadioButtonUncheckedIcon
-                    style={{ color: "lightgray", fontSize: "1.2rem", cursor: "pointer" }}
-                    onClick={(e) => toggleCheckBtn(e, todo.id)}
-                    />
-                ) : (
-                    <CheckCircleOutlineIcon
-                    style={{ color: "green", fontSize: "1.2rem", cursor: "pointer" }}
-                    onClick={(e) => toggleCheckBtn(e, todo.id)}
-                    />
-                )}
+            {
+                !showTrash &&
+                <>
+                    { todo.pending ? (
+                        <Tooltip title={`${showTrash ? '' : 'Mark'}`} arrow>
+                            <RadioButtonUncheckedIcon
+                            style={{ color: "lightgray", fontSize: "1.2rem", cursor: "pointer" }}
+                            onClick={(e) => toggleCheckBtn(e, todo.id)}
+                            />
+                        </Tooltip>
+                    ) : (
+                        <Tooltip title={` ${ isArchive ? "unArchive" : "Unmark" } `} arrow>
+                            <CheckCircleOutlineIcon
+                            style={{ color: "green", fontSize: "1.2rem", cursor: "pointer" }}
+                            onClick={(e) => toggleCheckBtn(e, todo.id)}
+                            />
+                        </Tooltip>
+                    )}
+                </>
+            }
                 <div className="flex justify-between p-4 w-[100%]">
                     <div className='flex justify-between w-[90%]'>
                         <p
-                        className={`w-[100%] break-all outline-0 ${
+                        className={`w-[100%] break-all ${
                             !todo.pending ? "line-through text-slate-400" : priorityColor[todo.priority][0]
                         }`}
                         contentEditable={toggler.edit}
@@ -120,16 +144,18 @@ const TodoItem = ({todo, isArchive}) => {
                         {todo.todoName}
                         </p>
 
-                        <button className={`border w-[110px] text-[12px] rounded-xl mx-2 text-white self-start ${priorityColor[todo.priority][1]}`}> {todo.priority}</button>
+                        <button className={`py-1 w-[110px] text-[12px] rounded-xl mx-2 text-white self-start ${priorityColor[todo.priority][1]}`}> {todo.priority}</button>
 
-                        <button className={`border w-[110px] text-[12px] rounded-xl self-start ${todo.pending ? 'bg-red-400 text-white ' : 'bg-green-500 text-white' }`}>{todo.pending ? 'Pending' : 'Completed'}</button>
+                        <button className={`py-1 w-[110px] text-[12px] rounded-xl self-start ${todo.pending ? 'bg-red-400 text-white ' : 'bg-green-500 text-white' }`}>{todo.pending ? 'Pending' : 'Completed'}</button>
 
                     </div>
-                    {toggler.cross && ((!todo.pending && isArchive) || todo.pending) && (
-                    <ClearIcon
-                        style={{ color: "red", fontSize: "1.2rem", cursor: "pointer" }}
-                        onClick={()=>handleDeleteTodo(todo.id)}
-                    />
+                    {toggler.cross && (showTrash || ((!todo.pending && isArchive) || todo.pending))  && (
+                    <Tooltip title="Delete" arrow>
+                        <ClearIcon
+                            style={{ color: "red", fontSize: "1.2rem", cursor: "pointer" }}
+                            onClick={()=>handleDeleteTodo(todo.id, showTrash)}
+                        />
+                    </Tooltip>
                     )}
                 </div>
             </div>

@@ -7,10 +7,13 @@ import FolderOffIcon from '@mui/icons-material/FolderOff';
 import UnarchiveIcon from '@mui/icons-material/Unarchive';
 import Tooltip from '@mui/material/Tooltip';
 import TodoList from './TodoList'
+import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import React, { createContext, useEffect, useState } from 'react'
 import { ToastContainer, toast } from 'react-toastify';
 import { themes } from '../theme';
 import 'react-toastify/dist/ReactToastify.css';
+import TodoItem from './TodoItem';
 
 export const TodoContext = createContext({});
 
@@ -27,6 +30,12 @@ const TodoApp = () => {
     const [activeTab, setActiveTab] = useState('all');
 
     const [showArchive, setShowArchive] = useState(true);
+
+    const [trashCan, setTrashCan] = useState([]);
+
+    const [showTrash, setShowTrash] = useState(null);
+
+    const [showMenu, setShowMenu] = useState(false);
 
     const [filter, setFilter] = useState({
         filterByTitle: '',
@@ -94,33 +103,42 @@ const TodoApp = () => {
 
     }
 
+    const handleTrashCan = () =>
+    {
+        setShowTrash((prev)=>!prev);
+    }
+
     useEffect(()=>
     {
         let todoRecord = JSON.parse(localStorage.getItem("todoData"));
         let todoArchive = JSON.parse(localStorage.getItem("todoArchive"));
+        let trashCanData = JSON.parse(localStorage.getItem("trashCan"));
         if(todoRecord)
             setTodoData(todoRecord);
         if(todoArchive)
             setArchive(todoArchive);
+        if(trashCanData)
+            setTrashCan(trashCanData);
     },[])
 
     useEffect(()=>
     {
         localStorage.setItem("todoData", JSON.stringify(todoData));
         localStorage.setItem("todoArchive", JSON.stringify(archive));
+        localStorage.setItem("trashCan", JSON.stringify(trashCan));
 
     },[todoData,archive])
 
 
     return (
         
-        <TodoContext.Provider value={{todoData, setTodoData, activeTab, pages, setPages, filter, showArchive, archive, setArchive}}>
+        <TodoContext.Provider value={{todoData, setTodoData, activeTab, pages, setPages, filter, showArchive, archive, setArchive, setTrashCan, trashCan, showTrash}}>
             <ThemeContext.Provider value={{theme, setTheme}}>
-            <div className={`flex justify-start items-center flex-col ${theme.context.backgroundOuter} h-[100vh] relative`}>
+            <div className={`wrapper flex justify-start items-center flex-col ${theme.context.backgroundOuter} h-[100vh] relative]`}>
 
-                <h1 className={`text-5xl font-medium my-[55px] ${theme.context.color}`}>📓 Todo List</h1>
+                <h1 className={`text-5xl font-medium my-[55px] ${theme.context.title}`}>📓 Todo List</h1>
 
-                <div className={`w-[47%] p-8 min-h-[420px] relative rounded ${theme.context.shadow} ${theme.context.backgroundInner}`}>
+                <div className={`todoWrapper w-[47%] p-8 min-h-[420px] relative rounded ${theme.context.shadow} ${theme.context.backgroundInner} ${showTrash===true ? 'todoWrapperStart' : showTrash===false ? 'todoWrapperBack' : ''} `}>
                 {
                     showArchive ?
 
@@ -165,14 +183,14 @@ const TodoApp = () => {
                                 </>
                                 :  <div className='h-[100%] flex flex-col justify-center items-center absolute top-[30px] right-[43%]'>
                                     <FolderOffIcon style={{fontSize:'4.5rem', color:'rgba(0,0,0,.22)'}}/>
-                                    <p style={{color:'rgba(0,0,0,.22)', fontSize:'1rem'}}>Add a Todo </p>
+                                    <p style={{color:'rgba(0,0,0,.42)', fontSize:'1rem'}}>Add a Todo </p>
                                 </div>
 
                             : archive.length==0 &&
 
                                 <div className='h-[100%] flex flex-col justify-center items-center absolute top-[0] right-[42%]'>
                                     <FolderOffIcon style={{fontSize:'4.5rem', color:'rgba(0,0,0,.22)'}}/>
-                                    <p style={{color:'rgba(0,0,0,.22)', fontSize:'1.2rem'}}>No Archive</p>
+                                    <p style={{color:'rgba(0,0,0,.42)', fontSize:'1.2rem'}}>No Archive</p>
                                 </div>
                         }
                     </div>
@@ -181,12 +199,12 @@ const TodoApp = () => {
                         filter.isFilterOn ?
 
                             <Tooltip title="Filter Off" arrow>
-                                <FilterAltOffIcon className={`absolute right-[20px] top-[20px] cursor-pointer text-gray-500`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
+                                <FilterAltOffIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color} `} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
                             </Tooltip>
                         
                         :
                         <Tooltip title="Filter On" arrow>
-                            <FilterAltIcon className={`absolute right-[20px] top-[20px] cursor-pointer text-gray-500`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
+                            <FilterAltIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
                         </Tooltip>
                     }
                     
@@ -230,12 +248,12 @@ const TodoApp = () => {
                         showArchive ?
 
                         <Tooltip title="Show Archive" arrow>
-                            <ArchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer text-gray-500' onClick={()=>setShowArchive(false)}/>
+                            <ArchiveIcon className={`absolute right-[65px] top-[20px] cursor-pointer ${theme.context.color} `} onClick={()=>setShowArchive(false)}/>
                         </Tooltip>
                         
                         :
                         <Tooltip title="Hide Archive" arrow>
-                            <UnarchiveIcon className='absolute right-[65px] top-[20px] cursor-pointer text-gray-500' onClick={()=>setShowArchive(true)}/>
+                            <UnarchiveIcon className={`absolute right-[65px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={()=>setShowArchive(true)}/>
                         </Tooltip>
 
                     }
@@ -246,7 +264,59 @@ const TodoApp = () => {
                     <DarkModeIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={switchTheme} />
                 </Tooltip>
 
+                {
+                    trashCan.length==0 ? 
+                    <div className='absolute right-[20px] bottom-[20px] cursor-pointer' onClick={handleTrashCan}>
+                        <Tooltip title="trash" arrow>
+                            <img src='./images/trash.png' width="90px" className='object-cover '/>
+                        </Tooltip>
+                    </div>
+                    :
+                    <div className='absolute right-[40px] bottom-[25px] cursor-pointer' onClick={handleTrashCan}>
+                        <Tooltip title="trash" arrow>
+                            <img src='./images/trashes.png' width="50px" className='object-cover '/>
+                        </Tooltip>
+                    </div>
+                }
+
+                <div className={`trashWrapper absolute top-[160px] flex items-center justify-center h-[620px] min-w-[300px] w-[47vw] rounded ${showTrash===true ? 'trashWrapperStart' : showTrash===false ? 'trashWrapperBack' : ''} ${theme.context.backgroundInner} `}>
+
+                    {
+                        trashCan.length!=0 ?
+                        <div className='flex flex-col'>
+                            <div className='flex justify-between relative'>
+                                <p className={`mb-[10px] ${theme.context.lightColor}`}>Trash</p>
+                                <MoreVertIcon style={{color:'gray', cursor:'pointer'}} onClick={()=>setShowMenu((prev)=>!prev)}/>
+
+                                {
+                                    showMenu &&
+                                    <div className={`flex justify-center absolute w-[100px] h-[40px] right-[20px] ${theme.context.backgroundOuter} ${theme.context.color}`}>
+                                        <button className='w-[100%] text-sm hover:opacity-[.78]' onClick={()=>{
+                                            setTrashCan([]);
+                                            localStorage.removeItem('trashCan')
+                                        }}>Clear All</button>
+                                    </div>
+                                }
+
+                            </div>
+                            <div className='overflow-auto h-[550px] w-[500px]' >
+                            {
+                                trashCan.map(todo=>(
+                                    <TodoItem todo={todo} key={("todo"+todo.id)} />
+                                ))
+                            }                        
+                            </div>
+                        </div>
+                        :
+                        <div className='flex flex-col items-center'>
+                            <DeleteIcon style={{fontSize:'5rem',  color:'rgba(0,0,0,.42)'}}/>
+                            <p style={{ color:'rgba(0,0,0,.42)' }}>No todos in trash</p>
+                        </div>
+                    }
+
+                </div>
                 
+
 
             </div>    
 

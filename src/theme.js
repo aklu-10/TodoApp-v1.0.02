@@ -5,9 +5,10 @@ export let themes =
         backgroundOuter: 'bg-[#e5e4e8]',
         backgroundInner : 'bg-[#f8f8f8]',
         title:'text-black',
-        color:'text-gray-500',
+        color:'text-black',
         lightColor:'text-gray-500',
-        shadow:'shadow-[0_0_6px_1px_gray]'
+        shadow:'shadow-[0_0_6px_1px_gray]',
+        plainCssColor:'black'
     },
 
     'dark':
@@ -19,5 +20,6 @@ export let themes =
         bgcolor:'bg-[#53cdba]',
         lightColor:'text-[#a9b3d2]',
         shadow:'shadow-[0_0_6px_1px_black]',
+        plainCssColor:'#53cdba'
     }
 }

@@ -37,6 +37,8 @@ const TodoApp = () => {
 
     const [showMenu, setShowMenu] = useState(false);
 
+    const [showArchiveMenu, setShowArchiveMenu] = useState(false);
+
     const [filter, setFilter] = useState({
         filterByTitle: '',
         filterByPriority: '',
@@ -199,12 +201,12 @@ const TodoApp = () => {
                         filter.isFilterOn ?
 
                             <Tooltip title="Filter Off" arrow>
-                                <FilterAltOffIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color} `} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
+                                <FilterAltOffIcon className={`absolute ${showArchive ? 'right-[20px] top-[20px]' : 'right-[60px] top-[20px]'}  cursor-pointer ${theme.context.color} `} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: false}))}/>
                             </Tooltip>
                         
                         :
                         <Tooltip title="Filter On" arrow>
-                            <FilterAltIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
+                            <FilterAltIcon className={`absolute ${showArchive ? 'right-[20px] top-[20px]' : 'right-[60px] top-[20px]'} cursor-pointer ${theme.context.color}`} onClick={()=>setFilter((prev)=>({...prev, isFilterOn: true}))}/>
                         </Tooltip>
                     }
                     
@@ -253,10 +255,38 @@ const TodoApp = () => {
                         
                         :
                         <Tooltip title="Hide Archive" arrow>
-                            <UnarchiveIcon className={`absolute right-[65px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={()=>setShowArchive(true)}/>
+                            <UnarchiveIcon className={`absolute right-[100px] top-[20px] cursor-pointer ${theme.context.color}`} onClick={()=>setShowArchive(true)}/>
                         </Tooltip>
 
                     }
+                    <div className='asbolute'>
+                    {
+                        !showArchive ? 
+
+                        <Tooltip title="Show Menu" arrow>
+                            <MoreVertIcon className={`absolute right-[20px] top-[20px] cursor-pointer ${theme.context.color}`} style={{cursor:'pointer'}} onClick={()=>setShowArchiveMenu((prev)=>!prev)}/>
+                        </Tooltip>  
+                        : null
+                    }
+                    <div>
+                        
+                    </div>
+                    
+                    {
+                        !showArchive && showArchiveMenu &&
+                        <div className={`flex justify-center rounded shadow-[0_0_4px_gray] absolute w-[100px] h-[40px] top-[20px] right-[-90px] ${theme.context.backgroundInner} ${theme.context.color}`}>
+                            <button className='w-[100%] text-sm hover:opacity-[.78]' onClick={()=>{
+                                
+                                setTodoData((prev)=>[...prev, ...archive])
+                                setArchive([]);
+                                localStorage.removeItem("todoArchive");
+                                setPages(Math.ceil(archive.length/6));
+                                toast.info("Todos unarchived.")
+                            }}>Unarchive All</button>
+                        </div>
+                    }
+                    </div>
+
 
                 </div>
 

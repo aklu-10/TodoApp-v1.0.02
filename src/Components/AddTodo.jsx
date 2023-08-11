@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { memo, useContext, useState } from 'react'
 import { TodoContext } from './TodoApp'
 import { ThemeContext } from './TodoApp';
 import InputLabel from '@mui/material/InputLabel';
@@ -79,7 +79,7 @@ const AddTodo = () => {
                 <NativeSelect
                 value={todoPriority}
                 onChange={(e)=>setTodoPriority(e.target.value)}
-                style={{color:'gray'}}
+                style={{color:`${theme.context.plainCssColor}`}}
                 >
                     <option value={'low'}>Low</option>
                     <option value={'medium'}>Medium</option>
@@ -96,4 +96,4 @@ const AddTodo = () => {
     )
 }
 
-export default AddTodo
+export default memo(AddTodo)

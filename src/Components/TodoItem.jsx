@@ -2,14 +2,11 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import Tooltip from '@mui/material/Tooltip';
-import React, { useContext, useState } from 'react'
+import React, { memo, useContext, useState } from 'react'
 import { TodoContext } from './TodoApp';
-import { ThemeContext } from './TodoApp';
 import { toast } from 'react-toastify';
 
 const TodoItem = ({todo, isArchive}) => {
-
-    console.log(todo)
 
     const [toggler, setToggler] = useState({
         checkbox:false,
@@ -162,4 +159,4 @@ const TodoItem = ({todo, isArchive}) => {
     );
 };
 
-export default TodoItem;
+export default memo(TodoItem);
